@@ -53,4 +53,34 @@ export const requireAuth = async (req, res, next) => {
         }
     });
 };
+/**
+ * ── Optional Authentication Middleware ─────────────────────────
+ * Attempts to verify a token if present, but does not block request if missing or invalid.
+ */
+export const optionalAuth = async (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return next();
+    }
+    await verifyToken(req, res, async (authError) => {
+        if (authError) {
+            return next(); // Proceed without req.user
+        }
+        try {
+            const firebaseUid = req.firebaseUser?.uid;
+            if (firebaseUid) {
+                const dbUser = await prisma.user.findUnique({
+                    where: { id: firebaseUid },
+                });
+                if (dbUser) {
+                    req.user = dbUser;
+                }
+            }
+        }
+        catch (error) {
+            // Proceed without req.user on database failure
+        }
+        next();
+    });
+};
 //# sourceMappingURL=auth.js.map

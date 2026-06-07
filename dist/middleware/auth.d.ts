@@ -24,4 +24,9 @@ export declare const verifyToken: (req: AuthenticatedRequest, res: Response, nex
  * in the MySQL database. Attaches the database user object to req.user.
  */
 export declare const requireAuth: (req: AuthenticatedRequest, res: Response, next: NextFunction) => Promise<void>;
+/**
+ * ── Optional Authentication Middleware ─────────────────────────
+ * Attempts to verify a token if present, but does not block request if missing or invalid.
+ */
+export declare const optionalAuth: (req: AuthenticatedRequest, res: Response, next: NextFunction) => Promise<void>;
 //# sourceMappingURL=auth.d.ts.map
