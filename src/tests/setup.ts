@@ -1,10 +1,7 @@
-// tests/setup.ts
-// Shared mock factories used across all test files
-
+// src/tests/setup.ts
 import { vi } from "vitest";
 
 // ── Prisma mock ───────────────────────────────────────────────
-// A single shared mock so every test file imports the same instance
 
 export const prismaMock = {
   user: {
@@ -13,13 +10,13 @@ export const prismaMock = {
     findMany:   vi.fn(),
   },
   product: {
-    findMany:  vi.fn(),
-    findFirst: vi.fn(),
-    findUnique:vi.fn(),
-    create:    vi.fn(),
-    update:    vi.fn(),
-    delete:    vi.fn(),
-    count:     vi.fn(),
+    findMany:   vi.fn(),
+    findFirst:  vi.fn(),
+    findUnique: vi.fn(),
+    create:     vi.fn(),
+    update:     vi.fn(),
+    delete:     vi.fn(),
+    count:      vi.fn(),
   },
   category: {
     findMany:  vi.fn(),
@@ -63,12 +60,15 @@ export const prismaMock = {
   $transaction: vi.fn(),
 };
 
-// ── Firebase Admin mock ───────────────────────────────────────
+// ── Firebase mock ─────────────────────────────────────────────
 
-export const firebaseMock = {
-  auth: vi.fn(() => ({
-    verifyIdToken: vi.fn(),
-  })),
+export const verifyIdTokenMock = vi.fn();
+
+export const adminMock = {
+  apps: [true], // non-empty so firebase.ts skips initializeApp
+  auth: vi.fn(() => ({ verifyIdToken: verifyIdTokenMock })),
+  credential: { cert: vi.fn() },
+  initializeApp: vi.fn(),
 };
 
 // ── Seed data ─────────────────────────────────────────────────
@@ -113,7 +113,9 @@ export const MOCK_PRODUCT = {
   categoryId:  "cat-001",
   createdAt:   new Date("2025-01-01"),
   updatedAt:   new Date("2025-01-01"),
-  category:    MOCK_CATEGORY,
+  category:    { id: "cat-001", name: "Skincare", slug: "skincare" },
+  reviews:     [],
+  _count:      { reviews: 0 },
 };
 
 export const MOCK_CART_ITEM = {
@@ -133,6 +135,17 @@ export const MOCK_WISHLIST_ITEM = {
   product:   MOCK_PRODUCT,
 };
 
+export const MOCK_ADDRESS = {
+  id:      "addr-001",
+  userId:  MOCK_USER.id,
+  label:   "Home",
+  street:  "123 Main St",
+  city:    "Lahore",
+  state:   "Punjab",
+  zip:     "54000",
+  country: "Pakistan",
+};
+
 export const MOCK_ORDER = {
   id:        "order-001",
   userId:    MOCK_USER.id,
@@ -143,16 +156,14 @@ export const MOCK_ORDER = {
   addressId: "addr-001",
   createdAt: new Date("2025-01-01"),
   updatedAt: new Date("2025-01-01"),
-  items: [
-    {
-      id:        "oi-001",
-      orderId:   "order-001",
-      productId: MOCK_PRODUCT.id,
-      quantity:  2,
-      price:     68,
-      product:   MOCK_PRODUCT,
-    },
-  ],
+  items: [{
+    id:        "oi-001",
+    orderId:   "order-001",
+    productId: MOCK_PRODUCT.id,
+    quantity:  2,
+    price:     68,
+    product:   MOCK_PRODUCT,
+  }],
   payment: {
     id:            "pay-001",
     orderId:       "order-001",
@@ -162,16 +173,7 @@ export const MOCK_ORDER = {
     transactionId: null,
     createdAt:     new Date("2025-01-01"),
   },
-  address: {
-    id:      "addr-001",
-    userId:  MOCK_USER.id,
-    label:   "Home",
-    street:  "123 Main St",
-    city:    "Lahore",
-    state:   "Punjab",
-    zip:     "54000",
-    country: "Pakistan",
-  },
+  address: MOCK_ADDRESS,
 };
 
 export const MOCK_REVIEW = {

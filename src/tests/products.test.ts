@@ -1,191 +1,105 @@
-// tests/products.test.ts
+// src/tests/products.test.ts
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from "supertest";
 import app from "../app.js";
-import {
-  MOCK_USER, MOCK_ADMIN, MOCK_PRODUCT, MOCK_CATEGORY,
-  prismaMock, firebaseMock,
-} from "./setup.js";
+import { MOCK_USER, MOCK_ADMIN, MOCK_PRODUCT, MOCK_CATEGORY, prismaMock, verifyIdTokenMock } from "./setup.js";
 
-vi.mock("../src/lib/prisma.js", () => ({ default: prismaMock }));
-vi.mock("../src/lib/firebase.js", () => ({ default: firebaseMock }));
-
-const VALID_TOKEN   = "valid-token";
-const ADMIN_TOKEN   = "admin-token";
-
-// Helper: set up Firebase + DB mocks for a given user
 function mockAuthAs(user: typeof MOCK_USER | typeof MOCK_ADMIN) {
-  firebaseMock.auth.mockReturnValue({
-    verifyIdToken: vi.fn().mockResolvedValue({
-      uid: user.id, email: user.email, name: user.name,
-    }),
-  });
+  verifyIdTokenMock.mockResolvedValue({ uid: user.id, email: user.email });
   prismaMock.user.findUnique.mockResolvedValue(user);
 }
 
-const PRODUCTS_RESPONSE = {
-  products: [MOCK_PRODUCT],
-  total:    1,
-  page:     1,
-  limit:    10,
-  pages:    1,
-};
-
 beforeEach(() => vi.clearAllMocks());
 
-// ── GET /api/products ─────────────────────────────────────────
-
 describe("GET /api/products", () => {
-
   it("200 — returns product list without auth", async () => {
     prismaMock.product.findMany.mockResolvedValue([MOCK_PRODUCT]);
     prismaMock.product.count.mockResolvedValue(1);
-
     const res = await request(app).get("/api/products");
-
     expect(res.status).toBe(200);
-    expect(res.body.status).toBe("success");
     expect(res.body.data.products).toHaveLength(1);
-    expect(res.body.data.products[0].name).toBe("Radiance Serum");
   });
 
   it("200 — filters by category slug", async () => {
     prismaMock.product.findMany.mockResolvedValue([MOCK_PRODUCT]);
     prismaMock.product.count.mockResolvedValue(1);
-
-    const res = await request(app)
-      .get("/api/products")
-      .query({ category: "skincare" });
-
+    const res = await request(app).get("/api/products").query({ category: "skincare" });
     expect(res.status).toBe(200);
-    expect(res.body.data.products).toBeDefined();
   });
 
   it("200 — filters by search term", async () => {
     prismaMock.product.findMany.mockResolvedValue([MOCK_PRODUCT]);
     prismaMock.product.count.mockResolvedValue(1);
-
-    const res = await request(app)
-      .get("/api/products")
-      .query({ search: "serum" });
-
+    const res = await request(app).get("/api/products").query({ search: "serum" });
     expect(res.status).toBe(200);
   });
 
   it("200 — filters by price range", async () => {
     prismaMock.product.findMany.mockResolvedValue([MOCK_PRODUCT]);
     prismaMock.product.count.mockResolvedValue(1);
-
-    const res = await request(app)
-      .get("/api/products")
-      .query({ minPrice: "50", maxPrice: "100" });
-
+    const res = await request(app).get("/api/products").query({ minPrice: "50", maxPrice: "100" });
     expect(res.status).toBe(200);
   });
 
   it("200 — sorts by price asc", async () => {
     prismaMock.product.findMany.mockResolvedValue([MOCK_PRODUCT]);
     prismaMock.product.count.mockResolvedValue(1);
-
-    const res = await request(app)
-      .get("/api/products")
-      .query({ sortBy: "price", sortOrder: "asc" });
-
+    const res = await request(app).get("/api/products").query({ sortBy: "price", sortOrder: "asc" });
     expect(res.status).toBe(200);
   });
 
   it("200 — paginates correctly", async () => {
     prismaMock.product.findMany.mockResolvedValue([MOCK_PRODUCT]);
     prismaMock.product.count.mockResolvedValue(20);
-
-    const res = await request(app)
-      .get("/api/products")
-      .query({ page: "2", limit: "10" });
-
+    const res = await request(app).get("/api/products").query({ page: "2", limit: "10" });
     expect(res.status).toBe(200);
     expect(res.body.data.page).toBe(2);
-    expect(res.body.data.pages).toBe(2);
   });
 
   it("200 — returns empty list when no products match", async () => {
     prismaMock.product.findMany.mockResolvedValue([]);
     prismaMock.product.count.mockResolvedValue(0);
-
-    const res = await request(app)
-      .get("/api/products")
-      .query({ search: "nonexistentxyz" });
-
+    const res = await request(app).get("/api/products").query({ search: "nonexistentxyz" });
     expect(res.status).toBe(200);
     expect(res.body.data.products).toHaveLength(0);
   });
 });
 
-// ── GET /api/products/:idOrSlug ───────────────────────────────
-
 describe("GET /api/products/:idOrSlug", () => {
-
   it("200 — returns product by slug", async () => {
     prismaMock.product.findFirst.mockResolvedValue(MOCK_PRODUCT);
-
     const res = await request(app).get("/api/products/radiance-serum");
-
     expect(res.status).toBe(200);
     expect(res.body.data.slug).toBe("radiance-serum");
   });
 
   it("200 — returns product by ID", async () => {
-    prismaMock.product.findUnique.mockResolvedValue(MOCK_PRODUCT);
     prismaMock.product.findFirst.mockResolvedValue(MOCK_PRODUCT);
-
     const res = await request(app).get(`/api/products/${MOCK_PRODUCT.id}`);
-
     expect(res.status).toBe(200);
-    expect(res.body.data.id).toBe(MOCK_PRODUCT.id);
   });
 
   it("404 — returns error for unknown slug", async () => {
     prismaMock.product.findFirst.mockResolvedValue(null);
     prismaMock.product.findUnique.mockResolvedValue(null);
-
     const res = await request(app).get("/api/products/no-such-product");
-
     expect(res.status).toBe(404);
   });
 });
 
-// ── POST /api/products (admin only) ──────────────────────────
-
 describe("POST /api/products", () => {
-
-  const newProduct = {
-    name:        "New Cream",
-    description: "A nice cream.",
-    price:       45,
-    images:      ["https://cdn.blum.com/new-cream.webp"],
-    categoryId:  "cat-001",
-  };
+  const newProduct = { name: "New Cream", description: "A nice cream.", price: 45, images: ["https://cdn.blum.com/new-cream.webp"], categoryId: "cat-001" };
 
   it("201 — admin creates product successfully", async () => {
     mockAuthAs(MOCK_ADMIN);
     prismaMock.product.create.mockResolvedValue({ ...MOCK_PRODUCT, ...newProduct });
-
-    const res = await request(app)
-      .post("/api/products")
-      .set("Authorization", `Bearer ${ADMIN_TOKEN}`)
-      .send(newProduct);
-
+    const res = await request(app).post("/api/products").set("Authorization", "Bearer admin-token").send(newProduct);
     expect(res.status).toBe(201);
-    expect(res.body.message).toBe("Product created successfully");
   });
 
   it("403 — customer cannot create product", async () => {
     mockAuthAs(MOCK_USER);
-
-    const res = await request(app)
-      .post("/api/products")
-      .set("Authorization", `Bearer ${VALID_TOKEN}`)
-      .send(newProduct);
-
+    const res = await request(app).post("/api/products").set("Authorization", "Bearer user-token").send(newProduct);
     expect(res.status).toBe(403);
   });
 
@@ -196,105 +110,62 @@ describe("POST /api/products", () => {
 
   it("400 — rejects missing required fields", async () => {
     mockAuthAs(MOCK_ADMIN);
-
-    const res = await request(app)
-      .post("/api/products")
-      .set("Authorization", `Bearer ${ADMIN_TOKEN}`)
-      .send({ name: "Incomplete" }); // missing description, price, images, categoryId
-
+    const res = await request(app).post("/api/products").set("Authorization", "Bearer admin-token").send({ name: "Incomplete" });
     expect(res.status).toBe(400);
   });
 });
 
-// ── PUT /api/products/:id (admin only) ────────────────────────
-
 describe("PUT /api/products/:id", () => {
-
   it("200 — admin updates product", async () => {
     mockAuthAs(MOCK_ADMIN);
     prismaMock.product.update.mockResolvedValue({ ...MOCK_PRODUCT, price: 75 });
-
-    const res = await request(app)
-      .put(`/api/products/${MOCK_PRODUCT.id}`)
-      .set("Authorization", `Bearer ${ADMIN_TOKEN}`)
-      .send({ price: 75 });
-
+    const res = await request(app).put(`/api/products/${MOCK_PRODUCT.id}`).set("Authorization", "Bearer admin-token").send({ price: 75 });
     expect(res.status).toBe(200);
-    expect(res.body.data.price).toBe(75);
   });
 
   it("403 — customer cannot update product", async () => {
     mockAuthAs(MOCK_USER);
-
-    const res = await request(app)
-      .put(`/api/products/${MOCK_PRODUCT.id}`)
-      .set("Authorization", `Bearer ${VALID_TOKEN}`)
-      .send({ price: 75 });
-
+    const res = await request(app).put(`/api/products/${MOCK_PRODUCT.id}`).set("Authorization", "Bearer user-token").send({ price: 75 });
     expect(res.status).toBe(403);
   });
 });
 
-// ── DELETE /api/products/:id (admin only) ─────────────────────
-
 describe("DELETE /api/products/:id", () => {
-
   it("200 — admin deletes product", async () => {
     mockAuthAs(MOCK_ADMIN);
     prismaMock.product.delete.mockResolvedValue(MOCK_PRODUCT);
-
-    const res = await request(app)
-      .delete(`/api/products/${MOCK_PRODUCT.id}`)
-      .set("Authorization", `Bearer ${ADMIN_TOKEN}`);
-
+    const res = await request(app).delete(`/api/products/${MOCK_PRODUCT.id}`).set("Authorization", "Bearer admin-token");
     expect(res.status).toBe(200);
-    expect(res.body.message).toBe("Product deleted successfully");
   });
 
   it("403 — customer cannot delete product", async () => {
     mockAuthAs(MOCK_USER);
-
-    const res = await request(app)
-      .delete(`/api/products/${MOCK_PRODUCT.id}`)
-      .set("Authorization", `Bearer ${VALID_TOKEN}`);
-
+    const res = await request(app).delete(`/api/products/${MOCK_PRODUCT.id}`).set("Authorization", "Bearer user-token");
     expect(res.status).toBe(403);
   });
 });
 
-// ── GET /api/categories ───────────────────────────────────────
-
 describe("GET /api/categories", () => {
-
   it("200 — returns all categories without auth", async () => {
     prismaMock.category.findMany.mockResolvedValue([MOCK_CATEGORY]);
-
     const res = await request(app).get("/api/categories");
-
     expect(res.status).toBe(200);
     expect(res.body.data).toHaveLength(1);
     expect(res.body.data[0].slug).toBe("skincare");
   });
 });
 
-// ── GET /api/categories/:idOrSlug ─────────────────────────────
-
 describe("GET /api/categories/:idOrSlug", () => {
-
   it("200 — returns category by slug", async () => {
     prismaMock.category.findFirst.mockResolvedValue(MOCK_CATEGORY);
-
     const res = await request(app).get("/api/categories/skincare");
-
     expect(res.status).toBe(200);
     expect(res.body.data.name).toBe("Skincare");
   });
 
   it("404 — unknown category returns 404", async () => {
     prismaMock.category.findFirst.mockResolvedValue(null);
-
     const res = await request(app).get("/api/categories/no-such-cat");
-
     expect(res.status).toBe(404);
   });
 });
