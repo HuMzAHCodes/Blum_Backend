@@ -1,7 +1,7 @@
 // tests/cart-wishlist.test.ts
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from "supertest";
-import app from "../src/app.js";
+import app from "../app.js";
 import {
   MOCK_USER, MOCK_PRODUCT, MOCK_CART_ITEM, MOCK_WISHLIST_ITEM,
   prismaMock, firebaseMock,

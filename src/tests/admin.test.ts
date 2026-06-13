@@ -1,7 +1,7 @@
 // tests/admin.test.ts
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from "supertest";
-import app from "../src/app.js";
+import app from "../app.js";
 import {
   MOCK_USER, MOCK_ADMIN, MOCK_ORDER, MOCK_PRODUCT,
   prismaMock, firebaseMock,
