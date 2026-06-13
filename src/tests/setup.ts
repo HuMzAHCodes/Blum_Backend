@@ -2,6 +2,7 @@
 import { vi } from "vitest";
 
 // ── Prisma mock ───────────────────────────────────────────────
+// Must include ALL methods used across all services
 
 export const prismaMock = {
   user: {
@@ -19,14 +20,16 @@ export const prismaMock = {
     count:      vi.fn(),
   },
   category: {
-    findMany:  vi.fn(),
-    findFirst: vi.fn(),
-    create:    vi.fn(),
-    update:    vi.fn(),
-    delete:    vi.fn(),
+    findMany:   vi.fn(),
+    findFirst:  vi.fn(),
+    findUnique: vi.fn(),   // ← used by getCategoryBySlug, getCategoryById
+    create:     vi.fn(),
+    update:     vi.fn(),
+    delete:     vi.fn(),
   },
   cartItem: {
     findFirst:  vi.fn(),
+    findUnique: vi.fn(),
     findMany:   vi.fn(),
     create:     vi.fn(),
     update:     vi.fn(),
@@ -35,6 +38,7 @@ export const prismaMock = {
   },
   wishlistItem: {
     findFirst:  vi.fn(),
+    findUnique: vi.fn(),   // ← used by addItem / removeItem (userId_productId compound key)
     findMany:   vi.fn(),
     create:     vi.fn(),
     delete:     vi.fn(),
@@ -43,19 +47,26 @@ export const prismaMock = {
   order: {
     create:    vi.fn(),
     findFirst: vi.fn(),
+    findUnique:vi.fn(),
     findMany:  vi.fn(),
     update:    vi.fn(),
   },
   review: {
     findFirst:  vi.fn(),
+    findUnique: vi.fn(),   // ← used by delete service
     findMany:   vi.fn(),
     create:     vi.fn(),
     update:     vi.fn(),
     delete:     vi.fn(),
   },
   address: {
-    findFirst: vi.fn(),
-    create:    vi.fn(),
+    findFirst:  vi.fn(),
+    findUnique: vi.fn(),
+    create:     vi.fn(),
+  },
+  payment: {
+    create: vi.fn(),
+    update: vi.fn(),
   },
   $transaction: vi.fn(),
 };
@@ -65,7 +76,7 @@ export const prismaMock = {
 export const verifyIdTokenMock = vi.fn();
 
 export const adminMock = {
-  apps: [true], // non-empty so firebase.ts skips initializeApp
+  apps: [true],    // non-empty → firebase.ts skips initializeApp
   auth: vi.fn(() => ({ verifyIdToken: verifyIdTokenMock })),
   credential: { cert: vi.fn() },
   initializeApp: vi.fn(),
@@ -95,6 +106,7 @@ export const MOCK_CATEGORY = {
   name:        "Skincare",
   slug:        "skincare",
   description: "Face serums, toners, moisturisers.",
+  _count:      { products: 5 },
   createdAt:   new Date("2025-01-01"),
   updatedAt:   new Date("2025-01-01"),
 };

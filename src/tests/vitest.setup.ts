@@ -1,12 +1,8 @@
 // src/tests/vitest.setup.ts
+// Global setup — only mocks firebase-admin (the npm package)
+// Each test file must also call vi.mock for ../lib/prisma.js and ../lib/firebase.js
+
 import { vi } from "vitest";
-import { adminMock, prismaMock } from "./setup.js";
+import { adminMock } from "./setup.js";
 
-// Mock firebase-admin before anything imports it
 vi.mock("firebase-admin", () => ({ default: adminMock }));
-
-// Mock src/lib/firebase.ts — this is what auth.ts actually imports
-vi.mock("../lib/firebase.js", () => ({ default: adminMock }));
-
-// Mock src/lib/prisma.ts globally
-vi.mock("../lib/prisma.js", () => ({ default: prismaMock }));
