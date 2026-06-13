@@ -1,13 +1,10 @@
-// vitest.config.ts
-// Place this in the ROOT of blum-backend/
-
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
     globals:     true,
     environment: "node",
-    include:     ["tests/**/*.test.ts"],
+    include:     ["**/*.test.ts"],    // ← changed
     coverage: {
       provider: "v8",
       reporter: ["text", "html"],
