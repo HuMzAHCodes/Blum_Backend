@@ -1,12 +1,12 @@
 import { Request, Response, NextFunction } from "express";
-import { AnyZodObject, ZodError } from "zod";
+import { ZodObject, ZodError, ZodTypeAny } from "zod";
 
 /**
  * ── Request Validation Middleware ────────────────────────────
  * Validates request data (body, query, and params) using Zod.
  * Returns formatted validation errors directly to the client.
  */
-export const validate = (schema: AnyZodObject) => {
+export const validate = (schema: ZodObject<any>) => {
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       // Perform validation and auto-parse fields
@@ -18,14 +18,14 @@ export const validate = (schema: AnyZodObject) => {
 
       // Override request fields with validated (typed) objects
       req.body = validatedData.body;
-      req.query = validatedData.query;
-      req.params = validatedData.params;
+      // req.query = validatedData.query;
+      req.params = validatedData.params as Record<string, string>;
 
       next();
     } catch (error) {
       if (error instanceof ZodError) {
         // Format validation messages
-        const errorDetails = error.errors.map((validationError) => ({
+       const errorDetails = error.issues.map((validationError)  => ({
           field: validationError.path.slice(1).join("."), // removes top level wrapper 'body'/'query'/'params'
           message: validationError.message,
         }));
