@@ -16,16 +16,16 @@
     "sourceMap":        true,
     "types":            ["node"],
 
-    /* Path aliases */
-    "baseUrl":  ".",
-    "paths": {
-      "@lib/*":         ["src/lib/*"],
-      "@middleware/*":  ["src/middleware/*"],
-      "@routes/*":      ["src/routes/*"],
-      "@controllers/*": ["src/controllers/*"],
-      "@services/*":    ["src/services/*"],
-      "@schemas/*":     ["src/schemas/*"]
-    }
+    // /* Path aliases */
+    // "baseUrl":  ".",
+    // "paths": {
+    //   "@lib/*":         ["src/lib/*"],
+    //   "@middleware/*":  ["src/middleware/*"],
+    //   "@routes/*":      ["src/routes/*"],
+    //   "@controllers/*": ["src/controllers/*"],
+    //   "@services/*":    ["src/services/*"],
+    //   "@schemas/*":     ["src/schemas/*"]
+    // }
   },
  "include": ["src/**/*", "tests/**/*", "prisma/**/*"],
   "exclude": ["node_modules", "dist"]
