@@ -14,7 +14,7 @@ export interface AuthenticatedRequest extends Request {
     createdAt: Date;
     updatedAt: Date;
   };
-  firebaseUser?: admin.auth.DecodedIdToken;
+  firebaseUser?: any;
 }
 
 /**
