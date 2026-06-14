@@ -1,12 +1,12 @@
-// ── Firebase Admin SDK ───────────────────────────────────────
-// firebase-admin has a CJS/ESM mismatch — its types say one thing
-// but the runtime exports differ depending on Node version.
-// Using `* as admin` and casting to `any` is the safest workaround
-// for Node 20+ with ESM ("type": "module" in package.json).
-import * as admin from "firebase-admin";
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+const admin = require("firebase-admin");
+
 
 // Cast once so we don't repeat `as any` everywhere below
-const firebaseAdmin = admin as any;
+const firebaseAdmin = admin;
+
+
 
 // ── Credentials from environment variables ───────────────────
 // FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY
@@ -23,18 +23,16 @@ let initialized = false;
 // Guard against re-initializing if the module is hot-reloaded
 // (e.g. by nodemon). apps is the list of active Firebase app
 // instances — if it's non-empty, the SDK is already running.
-if (!firebaseAdmin.apps.length) {
+if (!firebaseAdmin.getApps().length) {
   if (projectId && clientEmail && privateKey) {
     try {
-      firebaseAdmin.initializeApp({
-        credential: firebaseAdmin.credential.cert({
-          projectId,
-          clientEmail,
-          // Railway and .env store \n as a literal backslash-n —
-          // replace them with real newlines so the PEM key parses correctly.
-          privateKey: privateKey.replace(/\\n/g, "\n"),
-        }),
-      });
+     firebaseAdmin.initializeApp({
+  credential: firebaseAdmin.cert({
+    projectId,
+    clientEmail,
+    privateKey: privateKey.replace(/\\n/g, "\n"),
+  }),
+});
       initialized = true;
       console.log("🔥 Firebase Admin SDK initialized successfully.");
     } catch (error) {
