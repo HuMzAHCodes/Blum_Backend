@@ -2,17 +2,16 @@ import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 const admin = require("firebase-admin");
 
+// ── Debug (remove after Railway confirms working) ─────────────
+console.log("RAILWAY admin keys:", Object.keys(admin));
+console.log("RAILWAY auth type:", typeof admin.auth);
+console.log("RAILWAY credential type:", typeof admin.credential);
+console.log("RAILWAY getAuth type:", typeof admin.getAuth);
 
 // Cast once so we don't repeat `as any` everywhere below
 const firebaseAdmin = admin;
 
-
-
 // ── Credentials from environment variables ───────────────────
-// FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY
-// must be set in .env (backend) and Railway (production).
-// VITE_ prefixed vars are frontend-only — falling back to them
-// here is only for convenience during local dev.
 const projectId   = process.env.FIREBASE_PROJECT_ID  || process.env.VITE_FIREBASE_PROJECT_ID;
 const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
 const privateKey  = process.env.FIREBASE_PRIVATE_KEY;
@@ -20,19 +19,16 @@ const privateKey  = process.env.FIREBASE_PRIVATE_KEY;
 let initialized = false;
 
 // ── Initialization ────────────────────────────────────────────
-// Guard against re-initializing if the module is hot-reloaded
-// (e.g. by nodemon). apps is the list of active Firebase app
-// instances — if it's non-empty, the SDK is already running.
 if (!firebaseAdmin.getApps().length) {
   if (projectId && clientEmail && privateKey) {
     try {
-     firebaseAdmin.initializeApp({
-  credential: firebaseAdmin.cert({
-    projectId,
-    clientEmail,
-    privateKey: privateKey.replace(/\\n/g, "\n"),
-  }),
-});
+      firebaseAdmin.initializeApp({
+        credential: firebaseAdmin.cert({
+          projectId,
+          clientEmail,
+          privateKey: privateKey.replace(/\\n/g, "\n"),
+        }),
+      });
       initialized = true;
       console.log("🔥 Firebase Admin SDK initialized successfully.");
     } catch (error) {
@@ -46,7 +42,6 @@ if (!firebaseAdmin.getApps().length) {
     );
   }
 } else {
-  // App already initialized (e.g. hot reload) — skip re-init
   initialized = true;
 }
 

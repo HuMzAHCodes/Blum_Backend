@@ -15,6 +15,7 @@ import adminRoutes from "./routes/admin.routes.js";
 import { NotFoundError } from "./lib/errors.js";
 
 const app = express();
+app.set("trust proxy", 1);
 
 // Global Middlewares
 app.use(helmet());
