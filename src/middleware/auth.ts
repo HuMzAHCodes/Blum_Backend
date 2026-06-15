@@ -34,7 +34,7 @@ export const verifyToken = async (
     }
 
     const token = authHeader.split(" ")[1];
-    const decodedToken = await admin.auth().verifyIdToken(token);
+   const decodedToken = await (admin as any).getAuth().verifyIdToken(token);
     
     req.firebaseUser = decodedToken;
     next();

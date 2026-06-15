@@ -2,11 +2,6 @@ import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 const admin = require("firebase-admin");
 
-// ── Debug (remove after Railway confirms working) ─────────────
-console.log("RAILWAY admin keys:", Object.keys(admin));
-console.log("RAILWAY auth type:", typeof admin.auth);
-console.log("RAILWAY credential type:", typeof admin.credential);
-console.log("RAILWAY getAuth type:", typeof admin.getAuth);
 
 // Cast once so we don't repeat `as any` everywhere below
 const firebaseAdmin = admin;
